@@ -156,7 +156,10 @@ var generateMsg = (data, tag) => {
     .map((album, index) => formattedResult(index + 1, album))
     .join("\n\n");
 
-  return `**${albumList.caption}**\n\`\`\`markdown\n${topTenList}\`\`\``;
+  return `**${albumList.caption.replace(
+    "Torrents Uploaded",
+    "Albums"
+  )}**\n\`\`\`markdown\n${topTenList}\`\`\``;
 };
 
 var formattedResult = (index, result) => {
