@@ -1,6 +1,5 @@
 var Discord = require("discord.io");
 var logger = require("winston");
-var auth = require("./auth.json");
 var fetch = require("node-fetch");
 var he = require("he");
 
@@ -13,7 +12,7 @@ logger.level = "debug";
 
 // Initialize Discord Bot
 var bot = new Discord.Client({
-  token: auth.token,
+  token: process.env.token,
   autorun: true,
 });
 
@@ -82,12 +81,12 @@ var getSimilarArtists = async (artist) => {
     return "**Usage:**\n`!red like Pink Floyd`";
   }
 
-  const artistURL = auth.red_url + `action=artist&artistname=${artist}`;
+  const artistURL = process.env.red_url + `action=artist&artistname=${artist}`;
 
   try {
     var response = await fetch(artistURL, {
       headers: {
-        Authorization: auth.api_key,
+        Authorization: process.env.api_key,
       },
     });
 
@@ -109,12 +108,12 @@ var getSimilarArtists = async (artist) => {
 };
 
 var getTopTen = async (tag) => {
-  var url = auth.red_url + "action=top10&limit=100";
+  var url = process.env.red_url + "action=top10&limit=100";
 
   try {
     var response = await fetch(url, {
       headers: {
-        Authorization: auth.api_key,
+        Authorization: process.env.api_key,
       },
     });
 
