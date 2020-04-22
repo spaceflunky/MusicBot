@@ -12,9 +12,9 @@ logger.add(new logger.transports.Console(), {
 logger.level = "debug";
 
 const bot_token =
-  process.env.NODE_ENV === "dev" ? auth.token : process.env.token;
-const api_key =
-  process.env.NODE_ENV === "dev" ? auth.api_key : process.env.api_key;
+  process.env.NODE_ENV === "dev" ? auth.discord_bot_token : process.env.discord_bot_token;
+const red_api_key =
+  process.env.NODE_ENV === "dev" ? auth.red_api_key : process.env.red_api_key;
 const red_url =
   process.env.NODE_ENV === "dev" ? auth.red_url : process.env.red_url;
 
@@ -94,7 +94,7 @@ var getSimilarArtists = async (artist) => {
   try {
     var response = await fetch(artistURL, {
       headers: {
-        Authorization: api_key,
+        Authorization: red_api_key,
       },
     });
 
@@ -121,7 +121,7 @@ var getTopTen = async (tag) => {
   try {
     var response = await fetch(url, {
       headers: {
-        Authorization: api_key,
+        Authorization: red_api_key,
       },
     });
 
