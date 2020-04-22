@@ -11,7 +11,10 @@
     "winston": "^3.2.1"
   },
   "scripts": {
-    "dev": "NODE_ENV=dev node bot.js"
+    "dev": "NODE_ENV=dev nodemon bot.js"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
 }
