@@ -73,7 +73,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
               break;
             case "like":
               var artist = params.join(" ");
-              logger.info(artist);
               getSimilarArtists(artist).then((message) => {
                 bot.sendMessage({
                   to: channelID,
@@ -108,7 +107,6 @@ var getSimilarArtists = async (artist) => {
   }
 
   const artistURL = red_url + `action=artist&artistname=${artist}`;
-  logger.info(artistURL);
   try {
     var response = await fetch(artistURL, {
       headers: {
