@@ -210,15 +210,20 @@ var getLastFMArtistInfo = async (artist) => {
     return "**Usage:**\n`!artist pink floyd`";
   }
 
-  const url =
+  const artistInfoUrl =
     lastfm_url +
     `?method=artist.getinfo&artist=${artist}&api_key=${lastfm_api_key}&format=json`;
+  const topTagsUrl =
+    lastfm_url +
+    `?method=artist.gettoptags&artist=${artist}&api_key=${lastfm_api_key}&format=json`;
 
   try {
-    var response = await fetch(url);
-    var data = await response.json();
+    var artistInfoResponse = await fetch(artistInfoUrl);
+    var artistInfoData = await artistInfoResponse.json();
+    var artistTopTagsResponse = await fetch(topTagsUrl);
+    var artistTopTagsData = await artistTopTagsResponse.json();
 
-    if (data.error) {
+    if (artistInfoData.error) {
       if (data.error === 6) {
         return `Oops! I couldn't find an arist named \`${artist}\`, ya dingus.`;
       } else {
@@ -226,10 +231,14 @@ var getLastFMArtistInfo = async (artist) => {
       }
     }
 
-    var name = data.artist.name;
-    var artistUrl = data.artist.url;
-    var bio = sanitize(data.artist.bio.summary, { allowedTags: [] });
-    var tags = data.artist.tags.tag.map((tag) => tag.name).join(", ");
+    var name = artistInfoData.artist.name;
+    var artistUrl = artistInfoData.artist.url;
+    var bio = sanitize(artistInfoData.artist.bio.summary, { allowedTags: [] });
+    var tags = artistTopTagsData.toptags.tag
+      .filter((tag) => tag.name !== "seen live")
+      .map((tag) => tag.name)
+      .slice(0, 6)
+      .join(", ");
 
     var message = `**Info for \`${name}\`**\nFrom Last.fm: <${artistUrl}>\`\`\`markdown\n${bio}\n\n< ${tags} >\`\`\``;
 
