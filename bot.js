@@ -1,6 +1,7 @@
 var Discord = require("discord.io");
 var logger = require("winston");
 var fetch = require("node-fetch");
+var auth = process.env.NODE_ENV === "dev" ? require("./auth.json") : null;
 var he = require("he");
 
 // Configure logger settings
@@ -10,9 +11,16 @@ logger.add(new logger.transports.Console(), {
 });
 logger.level = "debug";
 
+const bot_token =
+  process.env.NODE_ENV === "dev" ? auth.token : process.env.token;
+const api_key =
+  process.env.NODE_ENV === "dev" ? auth.api_key : process.env.api_key;
+const red_url =
+  process.env.NODE_ENV === "dev" ? auth.red_url : process.env.red_url;
+
 // Initialize Discord Bot
 var bot = new Discord.Client({
-  token: process.env.token,
+  token: bot_token,
   autorun: true,
 });
 
@@ -81,12 +89,12 @@ var getSimilarArtists = async (artist) => {
     return "**Usage:**\n`!red like Pink Floyd`";
   }
 
-  const artistURL = process.env.red_url + `action=artist&artistname=${artist}`;
-
+  const artistURL = red_url + `action=artist&artistname=${artist}`;
+  logger.info(artistURL);
   try {
     var response = await fetch(artistURL, {
       headers: {
-        Authorization: process.env.api_key,
+        Authorization: api_key,
       },
     });
 
@@ -108,12 +116,12 @@ var getSimilarArtists = async (artist) => {
 };
 
 var getTopTen = async (tag) => {
-  var url = process.env.red_url + "action=top10&limit=100";
+  var url = red_url + "action=top10&limit=100";
 
   try {
     var response = await fetch(url, {
       headers: {
-        Authorization: process.env.api_key,
+        Authorization: api_key,
       },
     });
 
