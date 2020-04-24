@@ -63,23 +63,57 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
       switch (cmd) {
         case "!artist":
-          var artist = args.join(" ");
-          if (!artist) {
-            bot.sendMessage({
-              to: channelID,
-              message: "**Usage:**\n`!artist pink floyd`",
-            });
-            break;
-          }
+          var query = args[0];
+          var params = args.slice(1);
 
-          bot.simulateTyping(channelID, () => {
-            getLastFMArtistInfo(artist).then((message) => {
-              bot.sendMessage({
-                to: channelID,
-                message,
+          switch (query) {
+            case "info":
+              var artist = params.join(" ");
+
+              if (!artist) {
+                bot.sendMessage({
+                  to: channelID,
+                  message: "**Usage:**\n`!artist info pink floyd`",
+                });
+                break;
+              }
+
+              bot.simulateTyping(channelID, (error, response) => {
+                getLastFMArtistInfo(artist)
+                  .then((message) => {
+                    bot.sendMessage({
+                      to: channelID,
+                      message,
+                    });
+                  })
+                  .catch((error) => sendErrorMsg(channelID, error));
               });
-            });
-          });
+              break;
+            case "like":
+              var artist = params.join(" ");
+
+              if (!artist) {
+                bot.sendMessage({
+                  to: channelID,
+                  message: "**Usage:**\n`!artist like pink floyd`",
+                });
+                break;
+              }
+
+              bot.simulateTyping(channelID, (error, response) => {
+                getLastFMSimilarArtists(artist)
+                  .then((message) => {
+                    bot.sendMessage({
+                      to: channelID,
+                      message,
+                    });
+                  })
+                  .catch((error) => sendErrorMsg(channelID, error));
+              });
+              break;
+            default:
+              sendDefaultMsg(channelID, cmd);
+          }
           break;
         case "!red":
           var query = args[0];
@@ -98,12 +132,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
               }
 
               bot.simulateTyping(channelID, (error, response) => {
-                getREDArtistInfo(artist).then((message) => {
-                  bot.sendMessage({
-                    to: channelID,
-                    message,
-                  });
-                });
+                getREDArtistInfo(artist)
+                  .then((message) => {
+                    bot.sendMessage({
+                      to: channelID,
+                      message,
+                    });
+                  })
+                  .catch((error) => sendErrorMsg(channelID, error));
               });
               break;
             case "top":
@@ -118,12 +154,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
               }
 
               bot.simulateTyping(channelID, () => {
-                getTopTen(period).then((message) => {
-                  bot.sendMessage({
-                    to: channelID,
-                    message,
-                  });
-                });
+                getTopTen(period)
+                  .then((message) => {
+                    bot.sendMessage({
+                      to: channelID,
+                      message,
+                    });
+                  })
+                  .catch((error) => sendErrorMsg(channelID, error));
               });
               break;
             case "like":
@@ -138,12 +176,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
               }
 
               bot.simulateTyping(channelID, () => {
-                getSimilarArtists(artist).then((message) => {
-                  bot.sendMessage({
-                    to: channelID,
-                    message,
-                  });
-                });
+                getREDSimilarArtists(artist)
+                  .then((message) => {
+                    bot.sendMessage({
+                      to: channelID,
+                      message,
+                    });
+                  })
+                  .catch((error) => sendErrorMsg(channelID, error));
               });
               break;
             default:
@@ -157,6 +197,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
   }
 });
 
+var sendErrorMsg = (channelID, error) => {
+  bot.sendMessage({
+    to: channelID,
+    message: `Oops! Something's fucky. Did you *break* me?!\n\`Error: ${error.message}\``,
+  });
+};
+
 var sendDefaultMsg = (channelID, cmd, userId) => {
   var message = userId ? `<@${userId}>\n` : "";
   message += "**Usage:**\n";
@@ -168,7 +215,9 @@ var sendDefaultMsg = (channelID, cmd, userId) => {
         "See similar artists on RED: `!red like Pink Floyd`";
       break;
     case "!artist":
-      message += "Get artist info from last.fm: `!artist Pink Floyd`";
+      message +=
+        "Get artist info from last.fm: `!artist info Pink Floyd`\n" +
+        "Get similar artists from last.fm: `!artist like Pink Floyd`";
       break;
     default:
       message +=
@@ -201,7 +250,10 @@ var getREDArtistInfo = async (artist) => {
     var data = await response.json();
 
     if (data.status !== "success") {
-      return `Oops! Didn't find an artist named \`${artist}\``;
+      if (data.error === "no artist found") {
+        return `Oops! I couldn't find an artist named \`${artist}\`, ya dingus.`;
+      }
+      throw new Error(data.error);
     }
 
     var { name, image, body, tags } = data.response;
@@ -227,10 +279,11 @@ var getREDArtistInfo = async (artist) => {
     return message;
   } catch (error) {
     logger.error(error.message);
+    throw new Error(error.message);
   }
 };
 
-var getSimilarArtists = async (artist) => {
+var getREDSimilarArtists = async (artist) => {
   if (!artist) {
     return "**Usage:**\n`!red like Pink Floyd`";
   }
@@ -246,7 +299,10 @@ var getSimilarArtists = async (artist) => {
     var data = await response.json();
 
     if (data.status !== "success") {
-      return `Oops! Didn't find an artist named \`${artist}\``;
+      if (data.error === "no artist found") {
+        return `Oops! I couldn't find an artist named \`${artist}\`, ya dingus.`;
+      }
+      throw new Error(data.error);
     }
 
     const name = he.decode(data.response.name);
@@ -264,6 +320,7 @@ var getSimilarArtists = async (artist) => {
     return `**Artists Similar to \`${name}\`**\n\`\`\`markdown\n${similarArtists}\`\`\``;
   } catch (error) {
     logger.error(error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -295,6 +352,7 @@ var getTopTen = async (tag) => {
     }
   } catch (error) {
     logger.error(error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -334,6 +392,38 @@ var formattedResult = (index, result) => {
   return `${index}. ${artist} - ${album} [${year}]\n< ${tags} >`;
 };
 
+var getLastFMSimilarArtists = async (artist) => {
+  const similarArtistsUrl = `${lastfm_url}?method=artist.getsimilar&artist=${artist}&api_key=${lastfm_api_key}&format=json`;
+
+  try {
+    var response = await fetch(similarArtistsUrl);
+    var data = await response.json();
+
+    if (data.error) {
+      if (data.error === 6) {
+        return `Oops! I couldn't find an arist named \`${artist}\`, ya dingus.`;
+      } else {
+        throw new Error(data.message);
+      }
+    }
+
+    var name = data.similarartists["@attr"].artist;
+    var url = `https://www.last.fm/music/${name.replace(/ /g, "+")}/+similar`;
+
+    var similarArtists = data.similarartists.artist
+      .slice(0, 10)
+      .map((artist) => `* ${artist.name} - <${artist.url}>`)
+      .join("\n");
+
+    var message = `**Artists Similar to \`${name}\`**\n\n>>> ${similarArtists}\n\nMore: <${url}>`;
+
+    return message;
+  } catch (error) {
+    logger.error(error.message);
+    throw new Error(error.message);
+  }
+};
+
 var getLastFMArtistInfo = async (artist) => {
   const artistInfoUrl =
     lastfm_url +
@@ -349,10 +439,10 @@ var getLastFMArtistInfo = async (artist) => {
     var artistTopTagsData = await artistTopTagsResponse.json();
 
     if (artistInfoData.error) {
-      if (data.error === 6) {
+      if (artistInfoData.error === 6) {
         return `Oops! I couldn't find an arist named \`${artist}\`, ya dingus.`;
       } else {
-        return `Oops! Something's fucky. Did you *break* me?!`;
+        throw new Error(artistInfoData.message);
       }
     }
 
@@ -370,5 +460,6 @@ var getLastFMArtistInfo = async (artist) => {
     return message;
   } catch (error) {
     logger.error(error.message);
+    throw new Error(error.message);
   }
 };
