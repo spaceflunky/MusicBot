@@ -222,8 +222,10 @@ var sendDefaultMsg = (channelID, cmd, userId) => {
     default:
       message +=
         "Display the RED top 10: `!red top day|week|all`\n" +
+        "Get artist info from RED: `!red artist Pink Floyd`\n" +
         "See similar artists on RED: `!red like Pink Floyd`\n" +
-        "Get artist info from last.fm: `!artist Pink Floyd`";
+        "Get artist info from last.fm: `!artist Pink Floyd`\n" +
+        "See similar artists from last.fm: `!artist like Pink Floyd`";
       break;
   }
 
