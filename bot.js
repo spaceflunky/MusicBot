@@ -1,7 +1,6 @@
 var Discord = require("discord.io");
 var logger = require("winston");
 var fetch = require("node-fetch");
-var auth = process.env.NODE_ENV === "dev" ? require("./auth.json") : null;
 var he = require("he");
 var sanitize = require("sanitize-html");
 
@@ -13,18 +12,9 @@ logger.add(new logger.transports.Console(), {
 logger.level = "debug";
 
 // Set some constants
-const bot_token =
-  process.env.NODE_ENV === "dev"
-    ? auth.discord_bot_token
-    : process.env.discord_bot_token;
-const red_api_key =
-  process.env.NODE_ENV === "dev" ? auth.red_api_key : process.env.red_api_key;
-const red_url =
-  process.env.NODE_ENV === "dev" ? auth.red_url : process.env.red_url;
-const lastfm_api_key =
-  process.env.NODE_ENV === "dev"
-    ? auth.lastfm_api_key
-    : process.env.lastfm_api_key;
+const config =
+  process.env.NODE_ENV === "dev" ? require("./auth.json") : process.env;
+const { bot_token, red_api_key, red_url, lastfm_api_key } = config;
 const lastfm_url = "https://ws.audioscrobbler.com/2.0/";
 
 // Initialize Discord Bot
